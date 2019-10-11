@@ -315,10 +315,11 @@ export default {
 
           const items = await rsp.json();
 
-          if (items.meta != null) {
+          // [STAC 0.8.0] search:metadata
+          if (items["search:metadata"] != null) {
             // sat-api
-            this.externalItemCount = items.meta.found;
-            this.externalItemsPerPage = items.meta.limit;
+            this.externalItemCount = items["search:metadata"].matched;
+            this.externalItemsPerPage = items["search:metadata"].limit;
           } else {
             this.externalItemCount = items.features.length;
           }
@@ -559,19 +560,26 @@ export default {
           "@type": "Place",
           geo: {
             "@type": "GeoShape",
-            box: spatial.join(" ")
+            // [STAC 0.8.0]
+            box: spatial["bbox"][0].join(" ")
           }
         };
       }
 
       if (temporal != null) {
-        dataCatalog.temporalCoverage = temporal.map(x => x || "..").join("/");
+        // [STAC 0.8.0]
+        dataCatalog.temporalCoverage = temporal["interval"]
+          .map(x => x || "..")
+          .join("/");
       }
 
       return dataCatalog;
     },
     spatialExtent() {
-      return this.extent.spatial;
+      // [STAC 0.8.0]
+      return this.extent.spatial && this.extent.spatial["bbox"]
+        ? this.extent.spatial["bbox"][0]
+        : null;
     },
     stacVersion() {
       // REQUIRED
